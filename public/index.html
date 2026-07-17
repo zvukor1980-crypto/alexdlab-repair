@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="AlexDLab Repair — структурированная база диагностики и ремонта iPhone 5.">
+  <title>AlexDLab Repair — iPhone 5</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="AlexDLab Repair">
+      <span class="brand-mark">A</span>
+      <span>AlexDLab <b>Repair</b></span>
+    </a>
+    <nav>
+      <a href="#device">Устройство</a>
+      <a href="#diagnostics">Диагностика</a>
+      <a href="#schematics">Схемы</a>
+      <a href="#parts">Запчасти</a>
+    </nav>
+    <button id="themeToggle" class="theme-toggle" aria-label="Переключить тему">◐</button>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Интерактивная ремонтная база</p>
+        <h1>iPhone 5.<br><span>Диагностика без хаоса.</span></h1>
+        <p class="lead">Схемы, узлы, типовые неисправности, измерения и пошаговые алгоритмы ремонта в одном интерфейсе.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#diagnostics">Начать диагностику</a>
+          <a class="button secondary" href="#schematics">Открыть структуру схемы</a>
+        </div>
+        <dl class="device-meta">
+          <div><dt>Плата</dt><dd>820-3141</dd></div>
+          <div><dt>Схема</dt><dd>051-9113</dd></div>
+          <div><dt>Платформа</dt><dd>N41 / N42</dd></div>
+        </dl>
+      </div>
+      <div class="hero-visual">
+        <div class="glow"></div>
+        <img src="assets/iphone-5-hero.jpg" alt="iPhone 5, вид спереди и сзади">
+      </div>
+    </section>
+
+    <section id="device" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Структура устройства</p>
+        <h2>От симптома до конкретного узла</h2>
+      </div>
+      <div class="feature-grid">
+        <article class="card"><span>01</span><h3>Разборка</h3><p>Последовательность действий, винты, шлейфы и предупреждения.</p></article>
+        <article class="card"><span>02</span><h3>Плата</h3><p>Компоненты, контрольные точки, линии питания и связанные узлы.</p></article>
+        <article class="card"><span>03</span><h3>Схемы</h3><p>Навигация по функциональным блокам вместо поиска по десяткам страниц.</p></article>
+        <article class="card"><span>04</span><h3>Запчасти</h3><p>Совместимость модулей, маркировки и варианты замены.</p></article>
+      </div>
+    </section>
+
+    <section id="diagnostics" class="section panel">
+      <div class="section-heading">
+        <p class="eyebrow">Первый диагностический модуль</p>
+        <h2>Что случилось с устройством?</h2>
+      </div>
+      <div class="diagnostic-grid">
+        <button class="fault active" data-fault="power">Не включается</button>
+        <button class="fault" data-fault="charge">Не заряжается</button>
+        <button class="fault" data-fault="display">Нет изображения</button>
+        <button class="fault" data-fault="audio">Нет звука</button>
+      </div>
+      <div id="diagnosticResult" class="diagnostic-result">
+        <p class="result-label">Алгоритм</p>
+        <h3>iPhone 5 не включается</h3>
+        <ol>
+          <li>Осмотреть разъём, батарею и следы повреждения.</li>
+          <li>Проверить напряжение аккумулятора.</li>
+          <li>Подключить лабораторный блок питания и оценить потребление.</li>
+          <li>Проверить основные линии питания и короткое замыкание.</li>
+        </ol>
+        <p class="notice">Измерения выполняются квалифицированным специалистом на обесточенной или контролируемо запитанной плате.</p>
+      </div>
+    </section>
+
+    <section id="schematics" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Схематическая карта</p>
+        <h2>Основные функциональные блоки</h2>
+      </div>
+      <div class="schematic-map">
+        <div class="node">Lightning / Dock</div><div class="line"></div>
+        <div class="node">Tristar</div><div class="line"></div>
+        <div class="node">PMU</div><div class="line"></div>
+        <div class="node">Battery</div>
+      </div>
+      <p class="source-note">Исходные сервисные материалы хранятся локально в папке <code>source-materials</code> и не публикуются автоматически.</p>
+    </section>
+
+    <section id="parts" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Масштабируемая база</p>
+        <h2>Подготовлено для следующих моделей</h2>
+      </div>
+      <div class="roadmap">
+        <div><b>Сейчас</b><span>iPhone 5</span></div>
+        <div><b>Далее</b><span>iPhone 5s / SE</span></div>
+        <div><b>Потом</b><span>iPhone 6 и новее</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>© 2026 AlexDLab Repair</span>
+    <a href="mailto:admin@alexdlab.com">admin@alexdlab.com</a>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

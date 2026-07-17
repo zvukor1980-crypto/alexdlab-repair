@@ -1,0 +1,19 @@
+{
+  "slug": "iphone-5",
+  "manufacturer": "Apple",
+  "name": "iPhone 5",
+  "platforms": [
+    "N41",
+    "N42"
+  ],
+  "board": "820-3141",
+  "schematic": "051-9113",
+  "sections": [
+    "overview",
+    "disassembly",
+    "board",
+    "schematics",
+    "diagnostics",
+    "parts"
+  ]
+}
