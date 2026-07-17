@@ -1,25 +1,10 @@
-<!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Плата — AlexDLab Repair</title><link rel="stylesheet" href="../assets/app.css"></head>
-<body><div class="app-shell">
-<aside class="sidebar">
-<a class="brand" href="../index.html"><div class="logo">A</div><span>AlexDLab<small>Repair workstation</small></span></a>
-<div class="sidebar-section"><p class="sidebar-label">iPhone 5</p><nav class="nav"><a href="../index.html" class=""><i class="dot"></i><span>Обзор</span></a><a href="schematics.html" class=""><i class="dot"></i><span>Схемы</span></a><a href="board.html" class="active"><i class="dot"></i><span>Плата</span></a><a href="diagnostics.html" class=""><i class="dot"></i><span>Диагностика</span></a><a href="disassembly.html" class=""><i class="dot"></i><span>Разборка</span></a><a href="components.html" class=""><i class="dot"></i><span>Компоненты</span></a><a href="parts.html" class=""><i class="dot"></i><span>Запчасти</span></a></nav></div>
-<div class="sidebar-footer">Board 820-3141<br>Schematic 051-9113</div>
-</aside>
-<main class="main">
-<header class="topbar"><div class="breadcrumb">Apple / iPhone / iPhone 5</div><div class="search"><input data-search placeholder="Поиск: U2, PP_BATT_VCC, зарядка…"><span>⌕</span></div><div class="status"><i></i>База доступна</div></header>
-<div class="content">
-<section class="workspace-head"><div><div class="eyebrow">Board explorer</div><h1>Логическая плата</h1><p class="subtitle">Демонстрационный интерактивный слой. Нажми на обозначение компонента — справа изменится карточка.</p></div></section>
-<div class="page-layout"><div class="canvas">
-<div class="canvas-toolbar"><button class="chip active">Верхняя сторона</button><button class="chip">Нижняя сторона</button><button class="chip">Питание</button><button class="chip">Сигналы</button></div>
-<div class="board-mock">
-<button class="component" data-component="U2 — Tristar" data-ref="USB / charging interface" style="left:16%;top:18%">U2</button>
-<button class="component" data-component="PMU" data-ref="Power management" style="left:48%;top:40%">PMU</button>
-<button class="component" data-component="U7 — Audio Codec" data-ref="Audio subsystem" style="left:65%;top:16%">U7</button>
-<button class="component" data-component="J1 — Battery" data-ref="Battery connector" style="left:18%;top:72%">J1</button>
-<button class="component" data-component="CPU" data-ref="Application processor" style="left:42%;top:62%">CPU</button>
-</div></div>
-<aside class="side-info"><div class="info-card"><h3 data-info-title>Выберите компонент</h3><div class="info-row"><span>Функция</span><span data-info-ref>—</span></div><div class="info-row"><span>Плата</span><span>820-3141</span></div><div class="info-row"><span>Связанные сети</span><span>Будут добавлены</span></div></div>
-<div class="info-card"><h3>Действия</h3><div class="quick-list"><a class="quick-item" href="schematics.html"><span>Открыть в схеме</span><span>→</span></a><a class="quick-item" href="diagnostics.html"><span>Типовые неисправности</span><span>→</span></a></div></div></aside></div>
-</div></main></div><script src="../assets/app.js"></script></body></html>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AlexDLab Repair</title><link rel="stylesheet" href="../assets/app.css"></head>
+<body><div class="app"><aside class="side"><a class="brand" href="../index.html"><div class="logo">A</div><span>AlexDLab<small>REPAIR WORKSTATION</small></span></a><div><div class="label">iPhone 5 • 820-3141</div><nav class="nav"><a class="" href="index.html"><span>Обзор</span></a><a class="active" href="board.html"><span>Реальная плата</span></a><a class="" href="schematics.html"><span>Реальная схема</span></a><a class="" href="diagnostics.html"><span>Диагностика</span></a></nav></div></aside>
+<main class="main"><header class="top"><input class="search" id="boardSearch" placeholder="Поиск обозначения: U2, C120, PP_BATT_VCC"><div class="status">● Online</div></header><section class="content">
+<div class="workspace">
+<section class="viewer"><div class="toolbar">
+<button class="btn active" data-side="a">Сторона A</button><button class="btn" data-side="b">Сторона B</button><button class="btn" data-side="both">Обе</button>
+<button class="btn" id="zoomOut">−</button><span class="zoomval" id="zoomLabel">100%</span><button class="btn" id="zoomIn">+</button><button class="btn" id="fit">Вписать</button><button class="btn" id="reset">100%</button>
+</div><div class="stage" id="stage"><img id="boardImage" class="board-img" src="../assets/iphone5-board-side-a.jpg" alt="iPhone 5 PCB placement drawing"><div class="hint">Колесо — масштаб • мышь — перемещение</div></div></section>
+<aside class="panel"><h2>PCB 820-3141</h2><div class="panel-body"><div class="card"><b>Источник</b><p>ZenVo EVT3 MLB Placement Drawing, обе стороны платы.</p></div><div class="kv"><span>Устройство</span><span>iPhone 5</span></div><div class="kv"><span>PCB</span><span>820-3141-07</span></div><div class="kv"><span>Режим</span><span>Pan / Zoom</span></div><div id="searchResult"></div></div></aside>
+</div></section></main></div><script src="../assets/app.js"></script></body></html>

@@ -1,29 +1,8 @@
-<!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AlexDLab Repair — iPhone 5</title><link rel="stylesheet" href="assets/app.css"></head>
-<body><div class="app-shell">
-<aside class="sidebar">
-<a class="brand" href="index.html"><div class="logo">A</div><span>AlexDLab<small>Repair workstation</small></span></a>
-<div class="sidebar-section"><p class="sidebar-label">Устройство</p><nav class="nav">
-<a class="active" href="index.html"><i class="dot"></i><span>iPhone 5</span></a>
-<a href="iphone-5/schematics.html"><i class="dot"></i><span>Схемы</span></a>
-<a href="iphone-5/board.html"><i class="dot"></i><span>Плата</span></a>
-<a href="iphone-5/diagnostics.html"><i class="dot"></i><span>Диагностика</span></a>
-<a href="iphone-5/disassembly.html"><i class="dot"></i><span>Разборка</span></a>
-<a href="iphone-5/components.html"><i class="dot"></i><span>Компоненты</span></a>
-<a href="iphone-5/parts.html"><i class="dot"></i><span>Запчасти</span></a>
-</nav></div><div class="sidebar-footer">AlexDLab Repair<br>Engineering database</div></aside>
-<main class="main"><header class="topbar"><div class="breadcrumb">Apple / iPhone / iPhone 5</div><div class="search"><input data-search placeholder="Поиск по компонентам и неисправностям"><span>⌕</span></div><div class="status"><i></i>Система готова</div></header>
-<div class="content">
-<section class="workspace-head"><div><div class="eyebrow">Engineering workspace</div><h1>iPhone 5</h1><p class="subtitle">Рабочая база для диагностики, навигации по схеме, анализа платы и подготовки ремонта. Без рекламной прокрутки — сразу доступ к инструментам.</p></div><div class="device-badge"><b>Apple N41 / N42</b><span>Logic board: 820-3141</span><span>Schematic: 051-9113</span></div></section>
-<section class="tool-grid">
-<a class="tool-card featured" href="iphone-5/schematics.html" data-searchable><span class="icon">⌁</span><span class="arrow">↗</span><h2>Открыть схемы</h2><p>Функциональные блоки, линии питания и быстрые переходы между узлами.</p></a>
-<a class="tool-card" href="iphone-5/board.html" data-searchable><span class="icon">▦</span><span class="arrow">↗</span><h2>Открыть плату</h2><p>Интерактивная карта компонентов и информация по выбранному элементу.</p></a>
-<a class="tool-card" href="iphone-5/diagnostics.html" data-searchable><span class="icon">⚡</span><span class="arrow">↗</span><h2>Диагностика</h2><p>Алгоритмы по симптомам: питание, зарядка, дисплей, звук и связь.</p></a>
-<a class="tool-card" href="iphone-5/disassembly.html" data-searchable><span class="icon">⌘</span><span class="arrow">↗</span><h2>Разборка</h2><p>Пошаговый доступ к узлам с предупреждениями и последовательностью работ.</p></a>
-<a class="tool-card" href="iphone-5/components.html" data-searchable><span class="icon">◫</span><span class="arrow">↗</span><h2>Компоненты</h2><p>Поиск по позиционным обозначениям, функциям и связанным цепям.</p></a>
-<a class="tool-card" href="iphone-5/parts.html" data-searchable><span class="icon">◇</span><span class="arrow">↗</span><h2>Запчасти</h2><p>Совместимость, маркировки и подготовка каталога деталей.</p></a>
-</section>
-<section class="dashboard-grid"><div class="panel"><div class="panel-title"><h3>Карта цепи зарядки</h3><span>Быстрый маршрут</span></div><div class="flow"><div class="flow-node">Lightning</div><div class="flow-line"></div><div class="flow-node">Защита USB</div><div class="flow-line"></div><div class="flow-node">Tristar / U2</div><div class="flow-line"></div><div class="flow-node">PMU</div><div class="flow-line"></div><div class="flow-node">Battery</div></div></div>
-<div class="panel"><div class="panel-title"><h3>Быстрые запросы</h3><span>iPhone 5</span></div><div class="quick-list"><a class="quick-item" href="iphone-5/diagnostics.html"><span>Не включается</span><span>→</span></a><a class="quick-item" href="iphone-5/diagnostics.html"><span>Не заряжается</span><span>→</span></a><a class="quick-item" href="iphone-5/board.html"><span>Найти U2</span><span>→</span></a></div></div></section>
-</div></main></div><script src="assets/app.js"></script></body></html>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AlexDLab Repair</title><link rel="stylesheet" href="assets/app.css"></head>
+<body><div class="app"><aside class="side"><a class="brand" href="index.html"><div class="logo">A</div><span>AlexDLab<small>REPAIR WORKSTATION</small></span></a><div><div class="label">Устройство</div><nav class="nav"><a class="active" href="index.html"><span>iPhone 5</span></a><a href="iphone-5/board.html"><span>Реальная плата</span></a><a href="iphone-5/schematics.html"><span>Реальная схема</span></a><a href="iphone-5/diagnostics.html"><span>Диагностика</span></a></nav></div></aside>
+<main class="main"><header class="top"><input class="search" placeholder="Поиск по базе iPhone 5"><div class="status">● v0.2</div></header><section class="content">
+<div class="title"><h1>iPhone 5</h1><p>Первая функциональная версия: настоящий placement drawing и настоящий PDF schematic.</p></div>
+<div class="home"><a class="tile" href="iphone-5/board.html"><div>▦</div><h2>PCB Placement</h2><p>Реальное изображение платы 820-3141. Масштабирование колёсиком, перетаскивание и переключение сторон.</p></a>
+<a class="tile" href="iphone-5/schematics.html"><div>⌁</div><h2>Schematic PDF</h2><p>Открытие оригинального PDF из Internet Archive внутри инженерного интерфейса.</p></a>
+<a class="tile" href="iphone-5/diagnostics.html"><div>⚡</div><h2>Диагностика</h2><p>Рабочая структура алгоритмов, которая далее будет связываться с узлами платы и страницами схемы.</p></a></div>
+</section></main></div></body></html>

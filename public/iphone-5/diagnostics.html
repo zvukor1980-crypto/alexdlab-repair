@@ -1,26 +1,6 @@
-<!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Диагностика — AlexDLab Repair</title><link rel="stylesheet" href="../assets/app.css"></head>
-<body><div class="app-shell">
-<aside class="sidebar">
-<a class="brand" href="../index.html"><div class="logo">A</div><span>AlexDLab<small>Repair workstation</small></span></a>
-<div class="sidebar-section"><p class="sidebar-label">iPhone 5</p><nav class="nav"><a href="../index.html" class=""><i class="dot"></i><span>Обзор</span></a><a href="schematics.html" class=""><i class="dot"></i><span>Схемы</span></a><a href="board.html" class=""><i class="dot"></i><span>Плата</span></a><a href="diagnostics.html" class="active"><i class="dot"></i><span>Диагностика</span></a><a href="disassembly.html" class=""><i class="dot"></i><span>Разборка</span></a><a href="components.html" class=""><i class="dot"></i><span>Компоненты</span></a><a href="parts.html" class=""><i class="dot"></i><span>Запчасти</span></a></nav></div>
-<div class="sidebar-footer">Board 820-3141<br>Schematic 051-9113</div>
-</aside>
-<main class="main">
-<header class="topbar"><div class="breadcrumb">Apple / iPhone / iPhone 5</div><div class="search"><input data-search placeholder="Поиск: U2, PP_BATT_VCC, зарядка…"><span>⌕</span></div><div class="status"><i></i>База доступна</div></header>
-<div class="content">
-<section class="workspace-head"><div><div class="eyebrow">Diagnostic workflows</div><h1>Диагностика</h1><p class="subtitle">Выбери симптом и переходи к проверкам. Точные контрольные точки и номиналы будут добавляться после разметки схемы.</p></div></section>
-<div class="issue-grid">
-<div class="issue active" data-searchable><h3>Не включается</h3><p>Потребление, батарея, основные линии питания.</p></div>
-<div class="issue" data-searchable><h3>Не заряжается</h3><p>Lightning, USB-защита, Tristar, PMU.</p></div>
-<div class="issue" data-searchable><h3>Нет изображения</h3><p>Дисплей, коннектор, питание LCD и подсветка.</p></div>
-<div class="issue" data-searchable><h3>Нет звука</h3><p>Динамики, микрофоны, аудиокодек и цепи.</p></div>
-</div>
-<div class="panel steps"><div class="panel-title"><h3>Алгоритм: не включается</h3><span>Базовый маршрут</span></div>
-<div class="step"><div class="step-num">1</div><div><h4>Внешний осмотр</h4><p>Проверить разъёмы, следы жидкости, деформации платы и повреждения шлейфов.</p></div></div>
-<div class="step"><div class="step-num">2</div><div><h4>Проверка аккумулятора</h4><p>Убедиться в корректном напряжении и состоянии контактов батареи.</p></div></div>
-<div class="step"><div class="step-num">3</div><div><h4>Контролируемое питание</h4><p>Оценить характер потребления от лабораторного источника квалифицированным специалистом.</p></div></div>
-<div class="step"><div class="step-num">4</div><div><h4>Проверка основных линий</h4><p>Искать короткое замыкание и переходить к соответствующим функциональным блокам схемы.</p></div></div>
-<div class="notice">Работы на плате требуют соответствующей квалификации, антистатической защиты и безопасного измерительного оборудования.</div></div>
-</div></main></div><script src="../assets/app.js"></script></body></html>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AlexDLab Repair</title><link rel="stylesheet" href="../assets/app.css"></head>
+<body><div class="app"><aside class="side"><a class="brand" href="../index.html"><div class="logo">A</div><span>AlexDLab<small>REPAIR WORKSTATION</small></span></a><div><div class="label">iPhone 5 • 820-3141</div><nav class="nav"><a class="" href="index.html"><span>Обзор</span></a><a class="" href="board.html"><span>Реальная плата</span></a><a class="" href="schematics.html"><span>Реальная схема</span></a><a class="active" href="diagnostics.html"><span>Диагностика</span></a></nav></div></aside>
+<main class="main"><header class="top"><input class="search" id="boardSearch" placeholder="Поиск обозначения: U2, C120, PP_BATT_VCC"><div class="status">● Online</div></header><section class="content">
+<div class="title"><h1>Диагностика</h1><p>Функциональная основа без вымышленных измерений.</p></div>
+<div class="home"><div class="tile"><h2>Не включается</h2><p>Проверка батареи, потребления, короткого замыкания и основных шин питания.</p></div><div class="tile"><h2>Не заряжается</h2><p>Lightning connector → защита входа → USB interface → PMU → аккумулятор.</p></div><div class="tile"><h2>Нет изображения</h2><p>Коннектор дисплея, линии питания LCD и цепь подсветки.</p></div></div>
+<div class="card" style="margin-top:12px"><b>Важно</b><p>Точные точки измерения и номиналы будут добавляться только после проверки по реальной схеме, без угадывания.</p></div></section></main></div><script src="../assets/app.js"></script></body></html>
