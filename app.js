@@ -233,3 +233,66 @@ function runAudit(){
 function renderAuditEmpty(){$('auditResult').className='trust-card';$('auditResult').innerHTML='<div class="trust-ring" style="--score:0"><strong>—</strong><span>/ 100</span></div><div><p class="eyebrow">TRUST INDEX</p><h3>Пройдите чек-лист</h3><p>RepairLab соберёт риски и подскажет, что перепроверить до оплаты.</p></div>';}
 function escapeText(value){const el=document.createElement('span');el.textContent=value;return el.innerHTML;}
 initAudit();
+
+/* RepairLab Direct: secure localhost bridge for this Mac. */
+let bridgeConfig=null, bridgeTimer=null, dfuTimer=null;
+function initBridge(){
+  if(!$('bridge')) return;
+  const raw=location.hash.slice(1), params=new URLSearchParams(raw);
+  if(params.get('bridge')&&params.get('token')){
+    bridgeConfig={url:`http://127.0.0.1:${Number(params.get('bridge'))||18473}`,token:params.get('token')};
+    localStorage.setItem('repairlab:bridge',JSON.stringify(bridgeConfig)); history.replaceState(null,'',location.pathname+location.search+'#bridge');
+  }else{try{bridgeConfig=JSON.parse(localStorage.getItem('repairlab:bridge')||'null');}catch(e){}}
+  $('bridgeRefresh').onclick=refreshBridge;
+  $('openConfigurator').onclick=()=>bridgePost('/open/configurator');
+  $('deviceUpdate').onclick=()=>startBridgeJob('update');
+  $('deviceRestore').onclick=restoreDevice;
+  $('dfuGuide').onclick=()=>{$('dfuPanel').hidden=false;};
+  $('dfuClose').onclick=()=>{$('dfuPanel').hidden=true;clearInterval(dfuTimer);};
+  $('dfuStart').onclick=startDfuGuide;
+  refreshBridge(); bridgeTimer=setInterval(refreshBridge,3000);
+}
+async function bridgeFetch(path,options={}){
+  if(!bridgeConfig) throw new Error('Запустите START-REPAIRLAB.command на Mac');
+  const r=await fetch(bridgeConfig.url+path,{...options,headers:{'Content-Type':'application/json','X-RepairLab-Token':bridgeConfig.token,...options.headers}});
+  const data=await r.json(); if(!r.ok) throw new Error(data.error||`Bridge ${r.status}`); return data;
+}
+async function bridgePost(path,body={}){try{return await bridgeFetch(path,{method:'POST',body:JSON.stringify(body)});}catch(e){showBridgeError(e.message);}}
+async function refreshBridge(){
+  try{
+    const s=await bridgeFetch('/status');
+    $('bridge').classList.add('online');$('bridge').classList.remove('error');$('bridgeBadge').textContent='Bridge подключён';
+    const device=s.devices?.[0]||{}, mode=s.mode||'disconnected';
+    const labels={normal:'iPhone подключён',recovery:'Recovery Mode',dfu:'DFU Mode',disconnected:'iPhone не найден'};
+    $('deviceMode').textContent=labels[mode]||mode;$('deviceName').textContent=device.model||device.deviceType||device.deviceName||device.name||device.ECID||(mode==='disconnected'?'Подключите кабель и разблокируйте iPhone':'Устройство обнаружено');
+    $('devicePulse').parentElement.classList.toggle('connected',mode!=='disconnected');
+    $('bridgeHint').textContent=mode==='dfu'?'DFU распознан. Теперь доступно восстановление через Apple Configurator.':mode==='recovery'?'Recovery распознан. Можно выполнить Update или Restore.':mode==='normal'?'Соединение установлено. Для действий подтвердите доверие на iPhone.':'Bridge работает — ожидаю iPhone по USB.';
+  }catch(e){showBridgeError(e.message,false);}
+}
+function showBridgeError(message,hard=true){$('bridge').classList.remove('online');if(hard)$('bridge').classList.add('error');$('bridgeBadge').className='badge neutral';$('bridgeBadge').textContent='Bridge не подключён';$('deviceMode').textContent='Нет соединения';$('deviceName').textContent=message;}
+async function startBridgeJob(action,confirmation){
+  const result=await bridgePost(`/action/${action}`,confirmation?{confirmation}:{});if(!result?.job)return;
+  $('bridgeProgress').hidden=false;$('bridgeProgress').querySelector('p').textContent=action==='update'?'Apple Configurator обновляет iPhone. Не отключайте кабель.':'Выполняется полное восстановление. Не отключайте кабель.';
+  const watch=setInterval(async()=>{try{const job=await bridgeFetch(`/job/${result.job}`);if(job.state!=='running'){clearInterval(watch);$('bridgeProgress').hidden=true;alert(job.state==='done'?'Операция завершена успешно.':`Ошибка операции: ${job.output||'неизвестная ошибка'}`);refreshBridge();}}catch(e){clearInterval(watch);$('bridgeProgress').hidden=true;showBridgeError(e.message);}},1800);
+}
+function restoreDevice(){
+  const phrase=prompt('RESTORE ПОЛНОСТЬЮ СТИРАЕТ IPHONE.\n\nЕсли резервная копия создана и вы хотите продолжить, введите: СТЕРЕТЬ IPHONE');
+  if(phrase==='СТЕРЕТЬ IPHONE')startBridgeJob('restore',phrase);else if(phrase!==null)alert('Фраза не совпала. Restore отменён.');
+}
+function startDfuGuide(){
+  clearInterval(dfuTimer);let family=$('dfuFamily').value;
+  const sequence=family==='modern'?[['Быстро нажмите Volume Up',1],['Быстро нажмите Volume Down',1],['Удерживайте Side до выключения экрана',10],['Держите Side + Volume Down',5],['Отпустите Side, держите Volume Down',10]]:family==='seven'?[['Удерживайте Side + Volume Down',8],['Отпустите Side, держите Volume Down',10]]:[['Удерживайте Home + Side',8],['Отпустите Side, держите Home',10]];
+  let step=0,left=sequence[0][1];$('dfuTitle').textContent='Выполняйте команды точно по таймеру';
+  const draw=()=>{$('dfuSeconds').textContent=left;$('dfuInstruction').textContent=sequence[step][0];};draw();
+  dfuTimer=setInterval(()=>{left--;if(left<=0){step++;if(step>=sequence.length){clearInterval(dfuTimer);$('dfuSeconds').textContent='✓';$('dfuInstruction').textContent='Проверяю DFU… экран iPhone должен оставаться чёрным';setTimeout(refreshBridge,700);return;}left=sequence[step][1];}draw();},1000);
+}
+initBridge();
+
+function initMotion(){
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const items=[...document.querySelectorAll('main>.panel,main>.iphone-shell,main>.grid,main>.warning,.section-separator')];
+  items.forEach(x=>x.classList.add('reveal-ready'));
+  const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('revealed');observer.unobserve(e.target);}}),{threshold:.08,rootMargin:'0px 0px -40px'});
+  items.forEach(x=>observer.observe(x));
+}
+initMotion();

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101418">
   <title>RepairLab — инженерная диагностика электроники</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
   <style>
     .mainnav{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 22px}.mainnav a{display:inline-flex;align-items:center;min-height:40px;padding:0 13px;border-radius:10px;border:1px solid #303943;color:#dce3e7;text-decoration:none;background:#12181d;font-weight:750}.mainnav a.primary{background:#d8ff3e;color:#101310;border-color:#d8ff3e}
     .iphone-shell{margin:0 0 26px;border:1px solid #2a333b;border-radius:20px;overflow:hidden;background:#0b0e11;box-shadow:0 20px 60px rgba(0,0,0,.18)}
@@ -28,9 +28,11 @@
   <main>
     <section class="hero">
       <div>
+        <div class="hero-status"><span></span> REPAIRLAB DIRECT · M2 READY</div>
         <p class="eyebrow">REPAIRLAB WORKBENCH</p>
         <h1>Сервисный интеллект для каждого iPhone.</h1>
         <p class="lead">Главная страница объединяет полный iPhone Repair Center и универсальную базу по другой электронике. Для iPhone сначала выбирается модель, затем задача: ремонт, сохранение данных, Recovery/DFU, прошивка, jailbreak или board-level диагностика.</p>
+        <div class="hero-metrics"><div><strong>52</strong><span>модели iPhone</span></div><div><strong>9</strong><span>проверок Trust Scan</span></div><div><strong>0</strong><span>данных уходит наружу</span></div></div>
       </div>
       <div class="scope">
         <b>iPhone Repair Center</b>
@@ -40,6 +42,7 @@
 
     <nav class="mainnav">
       <a class="primary" href="#checkup">Проверка iPhone</a>
+      <a href="#bridge">Подключить iPhone</a>
       <a href="#iphone-center">Repair Center</a>
       <a href="#all-electronics">Другая электроника</a>
       <a href="#measurements">Измерения</a>
@@ -67,9 +70,35 @@
       <div class="audit-facts"><span>Оригинальность: Настройки → Основные → Об этом устройстве → История деталей</span><span>Activation Lock проверяется выходом продавца из Apple Account и стиранием при вас</span><span>IMEI на корпусе, в системе и по *#06# должен совпадать</span></div>
     </section>
 
+    <section id="bridge" class="bridge panel">
+      <div class="bridge-head"><div><p class="eyebrow">REPAIRLAB DIRECT · MAC M2</p><h2>Управление подключённым iPhone</h2></div><span id="bridgeBadge" class="badge neutral">Bridge не подключён</span></div>
+      <div class="bridge-layout">
+        <div class="device-orb"><span id="devicePulse"></span><strong id="deviceMode">Нет соединения</strong><small id="deviceName">Запустите RepairLab Bridge на Mac</small></div>
+        <div class="bridge-controls">
+          <p id="bridgeHint">Локальный помощник определит iPhone и безопасно передаст команды Apple Configurator. Данные устройства не покидают Mac.</p>
+          <div class="bridge-actions">
+            <a class="ghost bridge-download" href="https://github.com/zvukor1980-crypto/alexdlab-repair/archive/refs/heads/main.zip">Скачать Bridge для Mac</a>
+            <button id="bridgeRefresh" class="ghost">Обновить статус</button>
+            <button id="dfuGuide" class="ghost">DFU-помощник</button>
+            <button id="openConfigurator" class="ghost">Apple Configurator</button>
+            <button id="deviceUpdate" class="primary">Update · сохранить данные</button>
+            <button id="deviceRestore" class="danger-button">Restore · стереть</button>
+          </div>
+          <div id="bridgeProgress" class="bridge-progress" hidden><span></span><p>Операция выполняется…</p></div>
+        </div>
+      </div>
+      <div id="dfuPanel" class="dfu-panel" hidden>
+        <div><p class="eyebrow">LIVE DFU GUIDE</p><h3 id="dfuTitle">Подготовьте подключённый iPhone</h3></div>
+        <div class="dfu-timer"><strong id="dfuSeconds">—</strong><span id="dfuInstruction">Выберите поколение</span></div>
+        <select id="dfuFamily"><option value="modern">iPhone 8 и новее</option><option value="seven">iPhone 7 / 7 Plus</option><option value="home">iPhone 6s / SE 1 и старше</option></select>
+        <button id="dfuStart" class="primary">Начать последовательность</button>
+        <button id="dfuClose" class="ghost">Закрыть</button>
+      </div>
+    </section>
+
     <section id="iphone-center" class="iphone-shell" aria-label="iPhone Repair Center">
       <div class="center-toolbar"><p><b>52 модели</b> · маршруты ремонта · данные · Recovery/DFU · диагностика платы</p><a class="ghost" href="iphone.html" target="_blank">Открыть центр на весь экран ↗</a></div>
-      <iframe id="iphoneFrame" src="iphone.html?v=7" title="RepairLab iPhone Repair Center" loading="eager"></iframe>
+      <iframe id="iphoneFrame" src="iphone.html?v=8" title="RepairLab iPhone Repair Center" loading="eager"></iframe>
     </section>
 
     <div class="section-separator" id="all-electronics"><span>ДРУГАЯ ЭЛЕКТРОНИКА</span></div>
@@ -108,8 +137,8 @@
   </main>
 
   <footer>RepairLab · iPhone + универсальная электроника · GitHub Pages</footer>
-  <script src="app.js?v=7"></script>
-  <script src="jailbreak.js?v=7"></script>
+  <script src="app.js?v=8"></script>
+  <script src="jailbreak.js?v=8"></script>
   <script>
     const frame=document.getElementById('iphoneFrame');
     frame.addEventListener('load',()=>{
