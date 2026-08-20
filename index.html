@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101418">
+  <title>RepairLab — инженерная диагностика электроники</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">RL</div>
+      <div><strong>RepairLab</strong><span>инженерная диагностика электроники</span></div>
+    </div>
+    <button id="installBtn" class="ghost" hidden>Установить</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">DIAGNOSTIC WORKBENCH</p>
+        <h1>От симптома — к измерению, узлу и ремонту.</h1>
+        <p class="lead">Выберите устройство, модель и неисправность. RepairLab построит проверяемую последовательность диагностики с инструментами, контрольными точками, документами и заметками.</p>
+      </div>
+      <div class="scope">
+        <b>Категории</b>
+        <span>Телефоны · ТВ · ноутбуки · планшеты · мониторы · усилители · консоли · БП</span>
+      </div>
+    </section>
+
+    <section class="panel selector">
+      <div class="field"><label>Категория</label><select id="category"></select></div>
+      <div class="field"><label>Производитель</label><select id="brand"></select></div>
+      <div class="field"><label>Модель</label><select id="model"></select></div>
+      <div class="field"><label>Неисправность</label><select id="fault"></select></div>
+      <button id="startBtn" class="primary">Начать диагностику</button>
+    </section>
+
+    <section class="grid">
+      <article class="panel diagnostic">
+        <div class="section-head"><div><p class="eyebrow">DIAGNOSTIC FLOW</p><h2 id="diagTitle">Выберите модель и неисправность</h2></div><span id="sourceBadge" class="badge neutral">нет данных</span></div>
+        <div id="flow" class="flow empty"><div class="empty-state">Здесь появятся последовательные шаги проверки.</div></div>
+      </article>
+
+      <aside class="stack">
+        <section class="panel"><p class="eyebrow">INSTRUMENTS</p><h3>Инструменты</h3><div id="tools" class="chips"></div></section>
+        <section class="panel"><p class="eyebrow">DOCUMENTS</p><h3>Мануалы и схемы</h3><div id="docs" class="docs muted">Выберите устройство.</div></section>
+        <section class="panel"><p class="eyebrow">BENCH NOTES</p><h3>Заметки мастера</h3><textarea id="notes" placeholder="Ток потребления, напряжения, температура, наблюдения..."></textarea><button id="saveNotes" class="ghost full">Сохранить локально</button></section>
+      </aside>
+    </section>
+
+    <section class="panel measurements">
+      <div class="section-head"><div><p class="eyebrow">MEASUREMENT ASSISTANT</p><h2>Проверка результата измерения</h2></div></div>
+      <div class="measure-row">
+        <select id="measureType"><option value="voltage">Напряжение, V</option><option value="resistance">Сопротивление, Ω</option><option value="current">Ток, A</option><option value="frequency">Частота, Hz</option></select>
+        <input id="measureValue" inputmode="decimal" placeholder="Введите значение">
+        <button id="analyzeBtn" class="primary">Оценить</button>
+      </div>
+      <div id="measureResult" class="result muted">Для точной оценки выберите конкретный шаг, у которого задан проверенный диапазон.</div>
+    </section>
+
+    <section class="warning"><strong>Безопасность и точность.</strong><span>RepairLab не выдумывает контрольные точки, напряжения или профили нагрева. Значения помечаются как «проверенные» только при наличии сервисного источника. Работа с сетевыми БП, CRT, HV-инверторами, аккумуляторами и BGA требует соответствующей квалификации и мер безопасности.</span></section>
+  </main>
+
+  <footer>RepairLab · local-first PWA · база расширяется JSON-файлами</footer>
+  <script src="app.js"></script>
+</body>
+</html>
