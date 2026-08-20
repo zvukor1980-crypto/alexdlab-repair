@@ -290,13 +290,14 @@ async function refreshBridge(){
     const s=await bridgeFetch('/status');
     $('bridge').classList.add('online');$('bridge').classList.remove('error');$('bridgeBadge').textContent='Bridge подключён';
     const device=s.devices?.[0]||{}, mode=s.mode||'disconnected';
+    if($('usbTelemetry'))$('usbTelemetry').textContent=mode==='disconnected'?'WAIT':mode.toUpperCase();
     const labels={normal:'iPhone подключён',recovery:'Recovery Mode',dfu:'DFU Mode',disconnected:'iPhone не найден'};
     $('deviceMode').textContent=labels[mode]||mode;$('deviceName').textContent=device.model||device.deviceType||device.deviceName||device.name||device.ECID||(mode==='disconnected'?'Подключите кабель и разблокируйте iPhone':'Устройство обнаружено');
     $('devicePulse').parentElement.classList.toggle('connected',mode!=='disconnected');
     $('bridgeHint').textContent=mode==='dfu'?'DFU распознан. Теперь доступно восстановление через Apple Configurator.':mode==='recovery'?'Recovery распознан. Можно выполнить Update или Restore.':mode==='normal'?'Соединение установлено. Для действий подтвердите доверие на iPhone.':'Bridge работает — ожидаю iPhone по USB.';
   }catch(e){showBridgeError(e.message,false);}
 }
-function showBridgeError(message,hard=true){$('bridge').classList.remove('online');if(hard)$('bridge').classList.add('error');$('bridgeBadge').className='badge neutral';$('bridgeBadge').textContent='Bridge не подключён';$('deviceMode').textContent='Нет соединения';$('deviceName').textContent=message;}
+function showBridgeError(message,hard=true){$('bridge').classList.remove('online');if(hard)$('bridge').classList.add('error');$('bridgeBadge').className='badge neutral';$('bridgeBadge').textContent='Bridge не подключён';$('deviceMode').textContent='Нет соединения';$('deviceName').textContent=message;if($('usbTelemetry'))$('usbTelemetry').textContent='WAIT';}
 async function startBridgeJob(action,confirmation){
   const result=await bridgePost(`/action/${action}`,confirmation?{confirmation}:{});if(!result?.job)return;
   $('bridgeProgress').hidden=false;$('bridgeProgress').querySelector('p').textContent=action==='update'?'Apple Configurator обновляет iPhone. Не отключайте кабель.':'Выполняется полное восстановление. Не отключайте кабель.';
@@ -323,3 +324,13 @@ function initMotion(){
   items.forEach(x=>observer.observe(x));
 }
 initMotion();
+function initTelemetry(){
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('[data-counter]').forEach(el=>{
+    const target=Number(el.dataset.counter);if(reduced){el.textContent=`${target}%`;return;}
+    const started=performance.now(),duration=1500;
+    const tick=now=>{const p=Math.min(1,(now-started)/duration),eased=1-Math.pow(1-p,3);el.textContent=`${Math.round(target*eased)}%`;if(p<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);
+  });
+  if(!reduced&&$('hudPercent')){let n=98,up=true;setInterval(()=>{n+=up?1:-1;if(n>=99||n<=96)up=!up;$('hudPercent').textContent=`${n}%`;},1100);}
+}
+initTelemetry();
