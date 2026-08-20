@@ -193,3 +193,43 @@ function registerPWA(){
   $('installBtn').addEventListener('click',async()=>{if(deferred){deferred.prompt();deferred=null;$('installBtn').hidden=true;}});
 }
 init().catch(err=>{console.error(err);$('flow').innerHTML='<div class="empty-state">Не удалось загрузить базу данных.</div>';});
+
+/* Trust Scan: an honest, local pre-purchase audit. */
+const AUDIT_ITEMS=[
+  ['parts','История деталей без предупреждений','Нет «Неизвестной детали» для дисплея, батареи или камеры',18],
+  ['activation','Activation Lock отключён','Продавец вышел из Apple Account, Find My выключен',20],
+  ['identity','IMEI и серийный номер совпадают','В системе, на коробке/корпусе и по *#06#',12],
+  ['face','Face ID / Touch ID работает','Повторная регистрация и несколько разблокировок',10],
+  ['display','Дисплей прошёл тест','True Tone, яркость, сенсор по всей площади, нет выгорания',10],
+  ['cameras','Камеры и микрофоны исправны','Все объективы, фокус, видео, вспышка и диктофон',8],
+  ['radio','Связь проверена','SIM/eSIM, Wi‑Fi, Bluetooth, GPS и NFC',8],
+  ['charge','Заряд и разъём исправны','Кабель, беспроводная зарядка, нет перегрева',7],
+  ['body','Корпус без критичных следов ремонта','Ровные зазоры, винты, камеры без пыли',7]
+];
+
+function initAudit(){
+  const box=$('auditChecks'); if(!box) return;
+  box.innerHTML=AUDIT_ITEMS.map(([id,title,hint])=>`<label class="audit-check"><input type="checkbox" value="${id}"><span>${title}<small>${hint}</small></span></label>`).join('');
+  $('auditRun').addEventListener('click',runAudit);
+  $('auditReset').addEventListener('click',()=>{box.querySelectorAll('input').forEach(x=>x.checked=false);$('auditModel').value='';$('auditBattery').value='';$('auditSerial').value='';localStorage.removeItem('repairlab:audit');renderAuditEmpty();});
+  const saved=JSON.parse(localStorage.getItem('repairlab:audit')||'null');
+  if(saved){$('auditModel').value=saved.model||'';$('auditBattery').value=saved.battery||'';$('auditSerial').value=saved.serial||'';box.querySelectorAll('input').forEach(x=>x.checked=(saved.checked||[]).includes(x.value));runAudit();}
+}
+function runAudit(){
+  const checked=[...$('auditChecks').querySelectorAll('input:checked')].map(x=>x.value);
+  const battery=Math.max(0,Math.min(100,Number($('auditBattery').value)||0));
+  let score=AUDIT_ITEMS.filter(x=>checked.includes(x[0])).reduce((sum,x)=>sum+x[3],0);
+  if(battery){score=Math.round(score*.88+(battery>=90?12:battery>=80?8:battery>=70?4:0));}
+  const missing=AUDIT_ITEMS.filter(x=>!checked.includes(x[0])).sort((a,b)=>b[3]-a[3]).slice(0,3);
+  const risks=missing.map(x=>x[1]);
+  if(battery&&battery<80) risks.unshift(`Аккумулятор ${battery}% — заложите замену в цену`);
+  const state=score>=85?'good':score>=60?'warn':'danger';
+  const title=score>=85?'Высокий уровень доверия':score>=60?'Нужна дополнительная проверка':'Покупка с повышенным риском';
+  const model=$('auditModel').value.trim()||'iPhone';
+  $('auditResult').className=`trust-card ${state}`;
+  $('auditResult').innerHTML=`<div class="trust-ring" style="--score:${score}"><strong>${score}</strong><span>/ 100</span></div><div><p class="eyebrow">TRUST INDEX · ${escapeText(model)}</p><h3>${title}</h3><p>${checked.length} из ${AUDIT_ITEMS.length} проверок подтверждено.${battery?` Аккумулятор: ${battery}%.`:''}</p>${risks.length?`<div class="risk-list">${risks.map(x=>`<div class="risk-item">${escapeText(x)}</div>`).join('')}</div>`:'<p>Критичных пробелов в чек-листе не осталось.</p>'}</div>`;
+  localStorage.setItem('repairlab:audit',JSON.stringify({model:$('auditModel').value,battery:$('auditBattery').value,serial:$('auditSerial').value,checked}));
+}
+function renderAuditEmpty(){$('auditResult').className='trust-card';$('auditResult').innerHTML='<div class="trust-ring" style="--score:0"><strong>—</strong><span>/ 100</span></div><div><p class="eyebrow">TRUST INDEX</p><h3>Пройдите чек-лист</h3><p>RepairLab соберёт риски и подскажет, что перепроверить до оплаты.</p></div>';}
+function escapeText(value){const el=document.createElement('span');el.textContent=value;return el.innerHTML;}
+initAudit();
