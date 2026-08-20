@@ -16,6 +16,7 @@ async function init(){
   $('startBtn').addEventListener('click', renderDiagnostic);
   $('saveNotes').addEventListener('click', saveNotes);
   $('analyzeBtn').addEventListener('click', analyze);
+  installFirmwareCenter();
   onCategory();
   registerPWA();
 }
@@ -40,13 +41,18 @@ function onCategory(){
   fill(selects.brand, cat()?.brands||[], cat()?.brands?.length?'Выберите производителя':'База готова к наполнению');
   fill(selects.model, [], 'Сначала производитель');
   fill(selects.fault, [], 'Сначала модель');
+  updateFirmwareCenter();
 }
 function onBrand(){
   if(isApple()) fill(selects.model, IPHONES, 'Выберите iPhone');
   else fill(selects.model, brand()?.models||[], 'Выберите модель');
   fill(selects.fault, [], 'Сначала модель');
+  updateFirmwareCenter();
 }
-function onModel(){ fill(selects.fault, model()?.faults||[], 'Выберите неисправность'); renderDocs(); loadNotes(); }
+function onModel(){
+  fill(selects.fault, model()?.faults||[], 'Выберите неисправность');
+  renderDocs(); loadNotes(); updateFirmwareCenter();
+}
 function renderDocs(){
   const m=model();
   $('docs').innerHTML = !m ? '<span class="muted">Выберите устройство.</span>' : (m.documents||[]).map(d=>`<div class="doc"><b>${d.name}</b><span>${d.status}</span></div>`).join('');
@@ -72,6 +78,114 @@ function analyze(){
   const unit={voltage:'V',resistance:'Ω',current:'A',frequency:'Hz'}[$('measureType').value];
   $('measureResult').innerHTML=`Получено: <b>${val} ${unit}</b>. Автоматическая оценка не выполняется без выбранной контрольной точки с подтверждённым диапазоном. Это защита от выдуманных «норм».`;
 }
+
+function installFirmwareCenter(){
+  const selector=document.querySelector('.selector');
+  if(!selector || document.getElementById('firmwareCenter')) return;
+  const el=document.createElement('section');
+  el.id='firmwareCenter';
+  el.className='panel';
+  el.style.cssText='padding:20px;margin:0 0 18px;display:none';
+  el.innerHTML=`
+    <div class="section-head"><div><p class="eyebrow">IPHONE FIRMWARE CENTER</p><h2>Найти и подготовить прошивку</h2></div><span class="badge verified">только Signed IPSW</span></div>
+    <p class="muted" style="line-height:1.55;margin-top:-2px">Сначала выберите iPhone выше. RepairLab найдёт все аппаратные варианты этой модели, затем покажет только подписанные Apple прошивки. Для старых моделей обязательно выберите точный ProductType (GSM/Global/CDMA), иначе IPSW может не подойти.</p>
+    <div style="display:grid;grid-template-columns:minmax(220px,.8fr) minmax(260px,1.2fr) auto;gap:10px;align-items:end" class="fw-grid">
+      <div class="field"><label>Точный аппаратный вариант</label><select id="fwDevice"><option value="">Сначала выберите iPhone</option></select></div>
+      <div class="field"><label>Подписанная прошивка</label><select id="fwIpsw"><option value="">Сначала определите устройство</option></select></div>
+      <button id="fwFind" class="primary" style="height:44px">Найти прошивку</button>
+    </div>
+    <div id="fwResult" class="result muted" style="margin-top:12px">Выберите iPhone — программа автоматически запросит актуальные варианты и подписанные IPSW.</div>
+    <div id="fwActions" style="display:none;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
+    <div class="warning" style="margin-top:14px"><strong>Прошивка.</strong><span>GitHub Pages не имеет прямого доступа к сервисному USB-протоколу iPhone. Поэтому RepairLab подбирает правильную Signed IPSW и даёт прямую загрузку, а установка выполняется через Finder (Mac), Apple Devices/iTunes (Windows) либо совместимый локальный инструмент. Update пытается сохранить данные; Restore стирает устройство.</span></div>`;
+  selector.insertAdjacentElement('afterend',el);
+  const style=document.createElement('style');
+  style.textContent='@media(max-width:850px){.fw-grid{grid-template-columns:1fr!important}}';
+  document.head.appendChild(style);
+  $('fwFind').addEventListener('click',loadDeviceVariants);
+  $('fwDevice').addEventListener('change',loadSignedFirmwares);
+  $('fwIpsw').addEventListener('change',renderFirmwareChoice);
+}
+
+function normalizeName(s){
+  return String(s||'').toLowerCase().replace(/\(.*?\)/g,'').replace(/\b(1st|2nd|3rd)\s+gen\b/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+}
+async function updateFirmwareCenter(){
+  const box=$('firmwareCenter'); if(!box) return;
+  box.style.display=isApple() && selects.model.value ? 'block' : 'none';
+  if(box.style.display==='block'){
+    $('fwDevice').innerHTML='<option value="">Нажмите «Найти прошивку»</option>';
+    $('fwIpsw').innerHTML='<option value="">Сначала определите устройство</option>';
+    $('fwResult').textContent=`Выбрано: ${model()?.name||''}. Нажмите «Найти прошивку».`;
+    $('fwActions').style.display='none';
+  }
+}
+async function loadDeviceVariants(){
+  const m=model(); if(!m || !isApple()) return;
+  $('fwFind').disabled=true; $('fwFind').textContent='Ищу…';
+  $('fwResult').textContent='Запрашиваю каталог аппаратных вариантов…';
+  try{
+    const r=await fetch('https://api.ipsw.me/v4/devices',{cache:'no-store'});
+    if(!r.ok) throw new Error('devices '+r.status);
+    const all=await r.json();
+    const wanted=normalizeName(m.name);
+    let matches=all.filter(d=>String(d.identifier||'').startsWith('iPhone') && normalizeName(d.name)===wanted);
+    if(!matches.length) matches=all.filter(d=>String(d.identifier||'').startsWith('iPhone') && (normalizeName(d.name).includes(wanted)||wanted.includes(normalizeName(d.name))));
+    if(!matches.length) throw new Error('Не найден аппаратный вариант для '+m.name);
+    matches.sort((a,b)=>String(a.identifier).localeCompare(String(b.identifier)));
+    $('fwDevice').innerHTML=matches.map(d=>`<option value="${d.identifier}">${d.name} — ${d.identifier}</option>`).join('');
+    $('fwResult').innerHTML=`Найдено аппаратных вариантов: <b>${matches.length}</b>. ${matches.length>1?'Выберите точный ProductType перед загрузкой прошивки.':'ProductType определён.'}`;
+    await loadSignedFirmwares();
+  }catch(e){
+    $('fwResult').innerHTML=`Не удалось автоматически получить каталог IPSW: <b>${e.message}</b>. Можно открыть каталог прошивок вручную на IPSW Downloads.`;
+    $('fwActions').style.display='flex';
+    $('fwActions').innerHTML='<a class="ghost" style="display:inline-flex;align-items:center;text-decoration:none" href="https://ipsw.me/product/iPhone" target="_blank" rel="noopener">Открыть каталог iPhone IPSW</a>';
+  }finally{$('fwFind').disabled=false;$('fwFind').textContent='Найти прошивку';}
+}
+async function loadSignedFirmwares(){
+  const id=$('fwDevice').value; if(!id) return;
+  $('fwIpsw').innerHTML='<option>Загрузка…</option>';
+  $('fwResult').textContent=`Проверяю подписанные прошивки для ${id}…`;
+  try{
+    const r=await fetch(`https://api.ipsw.me/v4/device/${encodeURIComponent(id)}?type=ipsw`,{cache:'no-store'});
+    if(!r.ok) throw new Error('firmware '+r.status);
+    const d=await r.json();
+    const signed=(d.firmwares||[]).filter(f=>f.signed===true).sort((a,b)=>new Date(b.releasedate||0)-new Date(a.releasedate||0));
+    if(!signed.length){
+      $('fwIpsw').innerHTML='<option value="">Нет подписанных IPSW</option>';
+      $('fwResult').innerHTML=`Для <b>${id}</b> API сейчас не показывает подписанных IPSW. Неподписанную прошивку для обычного Restore использовать нельзя.`;
+      $('fwActions').style.display='flex';
+      $('fwActions').innerHTML=`<a class="ghost" style="display:inline-flex;align-items:center;text-decoration:none" href="https://ipsw.me/${encodeURIComponent(id)}" target="_blank" rel="noopener">Проверить на IPSW.me</a>`;
+      return;
+    }
+    $('fwIpsw').innerHTML=signed.map((f,i)=>`<option value="${i}">iOS ${f.version} · ${f.buildid}${f.filesize?` · ${formatBytes(f.filesize)}`:''}</option>`).join('');
+    $('fwIpsw').dataset.firmwares=JSON.stringify(signed);
+    renderFirmwareChoice();
+  }catch(e){
+    $('fwResult').innerHTML=`Ошибка получения прошивок: <b>${e.message}</b>.`;
+  }
+}
+function formatBytes(n){
+  const v=Number(n); if(!v) return '';
+  const g=v/1024/1024/1024; return g>=1?`${g.toFixed(1)} GB`:`${(v/1024/1024).toFixed(0)} MB`;
+}
+function renderFirmwareChoice(){
+  const raw=$('fwIpsw').dataset.firmwares; if(!raw) return;
+  const list=JSON.parse(raw), f=list[Number($('fwIpsw').value)||0]; if(!f) return;
+  const id=$('fwDevice').value;
+  $('fwResult').innerHTML=`<b>${id}</b> → iOS <b>${f.version}</b> (${f.buildid}) · <b>Signed</b>${f.filesize?` · ${formatBytes(f.filesize)}`:''}. Файл можно использовать для восстановления, пока Apple продолжает его подписывать.`;
+  $('fwActions').style.display='flex';
+  const url=f.url||`https://api.ipsw.me/v4/ipsw/download/${encodeURIComponent(id)}/${encodeURIComponent(f.buildid)}`;
+  $('fwActions').innerHTML=`
+    <a class="primary" style="display:inline-flex;align-items:center;min-height:42px;padding:0 14px;border-radius:10px;text-decoration:none" href="${url}" target="_blank" rel="noopener">Скачать Signed IPSW</a>
+    <button class="ghost" onclick="showFlashSteps('update')">Update без стирания</button>
+    <button class="ghost" onclick="showFlashSteps('restore')">Restore / чистая прошивка</button>
+    <a class="ghost" style="display:inline-flex;align-items:center;text-decoration:none" href="https://ipsw.me/${encodeURIComponent(id)}" target="_blank" rel="noopener">Все версии</a>`;
+}
+window.showFlashSteps=(mode)=>{
+  const update=mode==='update';
+  $('fwResult').innerHTML=`<b>${update?'UPDATE — попытка сохранить данные':'RESTORE — данные будут стёрты'}</b><br><br>1. Подключите iPhone кабелем к Mac или Windows.<br>2. Откройте Finder (macOS Catalina+) либо Apple Devices/iTunes на Windows.<br>3. При необходимости переведите iPhone в Recovery/DFU по инструкции для его поколения.<br>4. ${update?'Сначала выберите Update. Если используете скачанный IPSW вручную: на Mac удерживайте Option при выборе Update, на Windows — Shift.':'Для выбранного IPSW на Mac удерживайте Option при Restore iPhone, на Windows — Shift при Restore.'}<br>5. Выберите скачанный IPSW и дождитесь проверки подписи Apple и завершения установки.${update?'<br><br>Если данные критичны, не переходите к Restore, пока не исчерпаны пути без стирания.':''}`;
+};
+
 function registerPWA(){
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update());
   let deferred;
