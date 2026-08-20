@@ -1,5 +1,5 @@
-const CACHE='repairlab-v8-mac-bridge';
-const ASSETS=['./','index.html','iphone.html?v=8','styles.css?v=8','app.js?v=8','jailbreak.js?v=8','assets/repairlab-hero-v1.webp','data/devices.json','manifest.webmanifest'];
+const CACHE='repairlab-v9-auto-detect';
+const ASSETS=['./','index.html','iphone.html?v=9','styles.css?v=9','app.js?v=9','jailbreak.js?v=9','assets/repairlab-hero-v1.webp','data/devices.json','manifest.webmanifest'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener('activate',e=>{e.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))),self.clients.claim()]))});
 self.addEventListener('fetch',e=>{

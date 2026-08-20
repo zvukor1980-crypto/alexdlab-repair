@@ -235,7 +235,7 @@ function escapeText(value){const el=document.createElement('span');el.textConten
 initAudit();
 
 /* RepairLab Direct: secure localhost bridge for this Mac. */
-let bridgeConfig=null, bridgeTimer=null, dfuTimer=null;
+let bridgeConfig=null, bridgeTimer=null, dfuTimer=null, detectedDevice=null;
 function initBridge(){
   if(!$('bridge')) return;
   const raw=location.hash.slice(1), params=new URLSearchParams(raw);
@@ -244,6 +244,8 @@ function initBridge(){
     localStorage.setItem('repairlab:bridge',JSON.stringify(bridgeConfig)); history.replaceState(null,'',location.pathname+location.search+'#bridge');
   }else{try{bridgeConfig=JSON.parse(localStorage.getItem('repairlab:bridge')||'null');}catch(e){}}
   $('bridgeRefresh').onclick=refreshBridge;
+  $('bridgeIdentify').onclick=identifyIPhone;
+  $('openDetectedGuide').onclick=()=>{selectDetectedModel(detectedDevice?.deviceType);$('iphone-center').scrollIntoView({behavior:'smooth'});};
   $('openConfigurator').onclick=()=>bridgePost('/open/configurator');
   $('deviceUpdate').onclick=()=>startBridgeJob('update');
   $('deviceRestore').onclick=restoreDevice;
@@ -251,6 +253,31 @@ function initBridge(){
   $('dfuClose').onclick=()=>{$('dfuPanel').hidden=true;clearInterval(dfuTimer);};
   $('dfuStart').onclick=startDfuGuide;
   refreshBridge(); bridgeTimer=setInterval(refreshBridge,3000);
+}
+async function identifyIPhone(){
+  const button=$('bridgeIdentify'), old=button.textContent;button.disabled=true;button.textContent='Считываю данные…';clearInterval(bridgeTimer);
+  try{
+    const result=await bridgeFetch('/device/details');detectedDevice=result.device;renderDeviceDetails(detectedDevice,false);
+    const found=selectDetectedModel(detectedDevice.deviceType);
+    $('openDetectedGuide').hidden=!found;$('openDetectedGuide').textContent=found?`Инструкции для ${found} ↓`:'Открыть инструкции по модели ↓';
+    $('deviceMode').textContent=found||detectedDevice.name||'iPhone определён';$('deviceName').textContent=`${detectedDevice.deviceType||''} · iOS ${detectedDevice.humanReadableProductVersion||detectedDevice.firmwareVersion||'—'}`;
+    $('bridgeHint').textContent='Устройство определено. Ниже показаны фактические данные Apple Configurator. Теперь можно перейти к типовым неисправностям этой модели.';
+  }catch(e){showBridgeError(e.message);}finally{button.disabled=false;button.textContent=old;bridgeTimer=setInterval(refreshBridge,3000);}
+}
+function renderDeviceDetails(d,reveal){
+  const labels={deviceType:'Модель устройства',humanReadableProductVersion:'Версия iOS',buildVersion:'Сборка',batteryCurrentCapacity:'Аккумулятор',batteryIsCharging:'Заряжается',totalDiskCapacity:'Объём памяти',freeDiskSpace:'Свободно',activationState:'Активация',bootedState:'Состояние',isPaired:'Доверие Mac',isRestorable:'Можно восстановить',isSupervised:'Supervised',passcodeProtected:'Код-пароль',cloudBackupsAreEnabled:'iCloud Backup',serialNumber:'Серийный номер',IMEI:'IMEI',IMEI2:'IMEI 2',ECID:'ECID',UDID:'UDID',language:'Язык',locale:'Регион'};
+  const order=['deviceType','humanReadableProductVersion','buildVersion','batteryCurrentCapacity','batteryIsCharging','totalDiskCapacity','freeDiskSpace','activationState','bootedState','isPaired','isRestorable','isSupervised','passcodeProtected','cloudBackupsAreEnabled','serialNumber','IMEI','IMEI2','ECID','UDID','language','locale'];
+  const privateKeys=['serialNumber','IMEI','IMEI2','ECID','UDID'];
+  const value=(k,v)=>{if(privateKeys.includes(k)&&!reveal)return maskIdentifier(v);if(k==='batteryCurrentCapacity')return `${v}%`;if(k==='totalDiskCapacity'||k==='freeDiskSpace')return formatStorage(v);if(typeof v==='boolean')return v?'Да':'Нет';return String(v);};
+  const box=$('deviceDetails');box.hidden=false;box.innerHTML=`<div class="details-head"><strong>Паспорт устройства</strong><span>данные только с этого Mac</span></div><div class="details-grid">${order.filter(k=>d[k]!==undefined&&d[k]!==null).map(k=>`<div><span>${labels[k]||k}</span><strong>${escapeText(value(k,d[k]))}</strong></div>`).join('')}</div><button id="revealDeviceIds" class="ghost">${reveal?'Скрыть идентификаторы':'Показать идентификаторы'}</button>`;
+  $('revealDeviceIds').onclick=()=>renderDeviceDetails(d,!reveal);
+}
+function maskIdentifier(v){const s=String(v);return s.length<8?'••••':`${s.slice(0,4)}••••${s.slice(-4)}`;}
+function formatStorage(v){return `${(Number(v)/1e9).toFixed(1)} GB`;}
+function selectDetectedModel(productType){
+  if(!productType)return null;const frame=$('iphoneFrame'),d=frame?.contentDocument;if(!d)return null;
+  const card=[...d.querySelectorAll('.model')].find(x=>x.querySelector('small')?.textContent.includes(productType));if(!card)return null;
+  const name=card.querySelector('b')?.textContent||productType;card.click();return name;
 }
 async function bridgeFetch(path,options={}){
   if(!bridgeConfig) throw new Error('Запустите START-REPAIRLAB.command на Mac');
