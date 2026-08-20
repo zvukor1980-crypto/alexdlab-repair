@@ -1,5 +1,5 @@
-const CACHE='repairlab-v4';
-const ASSETS=['./','index.html','iphone.html','styles.css','app.js','data/devices.json','manifest.webmanifest'];
+const CACHE='repairlab-v5';
+const ASSETS=['./','index.html','iphone.html','styles.css','app.js','jailbreak.js','data/devices.json','manifest.webmanifest'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener('activate',e=>{e.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))),self.clients.claim()]))});
 self.addEventListener('fetch',e=>{
