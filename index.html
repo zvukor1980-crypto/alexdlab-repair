@@ -7,6 +7,14 @@
   <title>RepairLab — инженерная диагностика электроники</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .mainnav{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 22px}.mainnav a{display:inline-flex;align-items:center;min-height:40px;padding:0 13px;border-radius:10px;border:1px solid #303943;color:#dce3e7;text-decoration:none;background:#12181d;font-weight:750}.mainnav a.primary{background:#d8ff3e;color:#101310;border-color:#d8ff3e}
+    .iphone-shell{margin:0 0 26px;border:1px solid #2a333b;border-radius:20px;overflow:hidden;background:#0b0e11;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+    .iphone-shell iframe{display:block;width:100%;height:1850px;border:0;background:#0b0e11}
+    .section-separator{display:flex;align-items:center;gap:14px;margin:34px 0 18px}.section-separator:before,.section-separator:after{content:"";height:1px;background:#273039;flex:1}.section-separator span{color:#8f9aa4;font-size:12px;font-weight:800;letter-spacing:.14em}
+    @media(max-width:900px){.iphone-shell iframe{height:2350px}}
+    @media(max-width:560px){.iphone-shell iframe{height:3100px}}
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -20,16 +28,27 @@
   <main>
     <section class="hero">
       <div>
-        <p class="eyebrow">DIAGNOSTIC WORKBENCH</p>
-        <h1>От симптома — к измерению, узлу и ремонту.</h1>
-        <p class="lead">Выберите устройство, модель и неисправность. RepairLab построит проверяемую последовательность диагностики с инструментами, контрольными точками, документами и заметками.</p>
-        <p><a href="iphone.html" style="display:inline-flex;align-items:center;min-height:48px;padding:0 18px;border-radius:12px;background:#d8ff3e;color:#101310;text-decoration:none;font-weight:850">Открыть iPhone Repair Center →</a></p>
+        <p class="eyebrow">REPAIRLAB WORKBENCH</p>
+        <h1>Диагностика, данные, прошивка и ремонт — в одном месте.</h1>
+        <p class="lead">Главная страница объединяет полный iPhone Repair Center и универсальную базу по другой электронике. Для iPhone сначала выбирается модель, затем задача: ремонт, сохранение данных, Recovery/DFU, прошивка или board-level диагностика.</p>
       </div>
       <div class="scope">
-        <b>iPhone Center уже внутри</b>
-        <span>52 модели · данные · Recovery/DFU · подписанные IPSW · диагностика платы · микропайка</span>
+        <b>iPhone Repair Center</b>
+        <span>Все поколения · данные · Recovery/DFU · IPSW · диагностика платы · микропайка</span>
       </div>
     </section>
+
+    <nav class="mainnav">
+      <a class="primary" href="#iphone-center">iPhone Repair Center</a>
+      <a href="#all-electronics">Другая электроника</a>
+      <a href="#measurements">Измерения</a>
+    </nav>
+
+    <section id="iphone-center" class="iphone-shell" aria-label="iPhone Repair Center">
+      <iframe src="iphone.html" title="RepairLab iPhone Repair Center" loading="eager"></iframe>
+    </section>
+
+    <div class="section-separator" id="all-electronics"><span>ДРУГАЯ ЭЛЕКТРОНИКА</span></div>
 
     <section class="panel selector">
       <div class="field"><label>Категория</label><select id="category"></select></div>
@@ -52,7 +71,7 @@
       </aside>
     </section>
 
-    <section class="panel measurements">
+    <section id="measurements" class="panel measurements">
       <div class="section-head"><div><p class="eyebrow">MEASUREMENT ASSISTANT</p><h2>Проверка результата измерения</h2></div></div>
       <div class="measure-row">
         <select id="measureType"><option value="voltage">Напряжение, V</option><option value="resistance">Сопротивление, Ω</option><option value="current">Ток, A</option><option value="frequency">Частота, Hz</option></select>
@@ -62,10 +81,10 @@
       <div id="measureResult" class="result muted">Для точной оценки выберите конкретный шаг, у которого задан проверенный диапазон.</div>
     </section>
 
-    <section class="warning"><strong>Безопасность и точность.</strong><span>RepairLab не выдумывает контрольные точки, напряжения или профили нагрева. Значения помечаются как «проверенные» только при наличии сервисного источника. Работа с сетевыми БП, CRT, HV-инверторами, аккумуляторами и BGA требует соответствующей квалификации и мер безопасности.</span></section>
+    <section class="warning"><strong>Безопасность и точность.</strong><span>RepairLab не выдумывает контрольные точки, напряжения или профили нагрева. Точные значения должны быть привязаны к проверенному источнику и конкретной ревизии платы. Восстановление данных не включает обход код-пароля или блокировок владельца.</span></section>
   </main>
 
-  <footer>RepairLab · local-first PWA · база расширяется JSON-файлами</footer>
+  <footer>RepairLab · iPhone + универсальная электроника · GitHub Pages</footer>
   <script src="app.js"></script>
 </body>
 </html>
