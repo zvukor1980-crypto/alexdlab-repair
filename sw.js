@@ -1,5 +1,5 @@
 /* Scoped offline cache. Fresh code online, saved code offline; no API caching. */
-const VERSION = 'repairlab-v11-20261006';
+const VERSION = 'repairlab-v11-20261006-pairs1';
 const PREFIX = 'repairlab-';
 const ASSETS = ['./','index.html','iphone.html?v=10','styles.css?v=10','app.js?v=10','jailbreak.js?v=10','assets/repairlab-hero-v1.webp','data/devices.json','manifest.webmanifest','studio/config.js','studio/studio.js','studio/studio.css','studio/looks/look-01.webp','studio/looks/look-02.webp','studio/looks/look-03.webp','studio/looks/look-04.webp','studio/looks/look-05.webp','studio/looks/look-06.webp','studio/looks/look-07.webp','studio/looks/look-08.webp','studio/looks/look-09.webp','studio/looks/look-10.webp'];
 const SHELL = new URL('index.html', self.registration.scope).href;
