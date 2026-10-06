@@ -1,0 +1,23 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{JSDOM}=require('jsdom');
+const root=path.join(__dirname,'..'),dom=new JSDOM(fs.readFileSync(path.join(root,'index.html'),'utf8'),{url:'https://repair.test/',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window;
+w.matchMedia=()=>({matches:true,addEventListener(){}});w.requestAnimationFrame=()=>1;
+w.fetch=async()=>({json:async()=>JSON.parse(fs.readFileSync(path.join(root,'data/devices.json'),'utf8'))});
+w.localStorage.setItem('repairlab:audit','broken JSON');w.localStorage.setItem('repairlab:iphone-5:notes','Старые заметки');
+w.eval(fs.readFileSync(path.join(root,'app.js'),'utf8'));
+const $=id=>w.document.getElementById(id),pick=(id,value)=>{$(id).value=value;$(id).dispatchEvent(new w.Event('change'));};
+(async()=>{try{
+ await new Promise(r=>setTimeout(r,30));
+ pick('category','phones');pick('brand','apple');pick('model','iphone-5');assert.equal($('notes').value,'Старые заметки');
+ $('notes').value='Первый аппарат <script>bad()</script>';$('notes').dispatchEvent(new w.Event('input'));
+ pick('model','iphone-6');assert(w.localStorage.getItem('repairlab:notes:phones:apple:iphone-5').includes('Первый аппарат'));
+ $('notes').value='Второй аппарат';$('notes').dispatchEvent(new w.Event('input'));await new Promise(r=>setTimeout(r,300));assert.equal(w.localStorage.getItem('repairlab:notes:phones:apple:iphone-6'),'Второй аппарат');
+ pick('model','iphone-5');assert($('notes').value.includes('Первый аппарат'));
+ const fault=$('fault').options[1].value;pick('fault',fault);$('startBtn').click();const step=$('flow').querySelector('.step');assert(step);step.querySelector('button').click();assert.equal(step.dataset.state,'ok');$('startBtn').click();assert.equal($('flow').querySelector('.step').dataset.state,'ok');
+ const source=w.Storage.prototype.setItem;w.Storage.prototype.setItem=()=>{throw Error('Full');};$('notes').value='Не записалось';$('notes').dispatchEvent(new w.Event('input'));pick('model','iphone-6');$('notes').value='Тоже не записалось';$('notes').dispatchEvent(new w.Event('input'));pick('model','iphone-5');assert.equal($('notes').value,'Не записалось');assert($('noteStatus').textContent.includes('несохранённые'));
+ w.Storage.prototype.setItem=source;$('saveNotes').click();assert.equal(w.localStorage.getItem('repairlab:notes:phones:apple:iphone-5'),'Не записалось');assert.equal(w.localStorage.getItem('repairlab:notes:phones:apple:iphone-6'),'Тоже не записалось');
+ pick('fault',fault);$('startBtn').click();$('notes').value='<script>alert(1)</script> & notes';let report='';w.open=()=>({document:{write:s=>{report=s},close(){}},focus(){},print(){}});$('printReport').click();assert(report.includes('&lt;script&gt;'));assert(!report.includes('<script>'));assert(report.includes('Выполнено'));assert(report.includes('iPhone 5'));
+ let download='';w.URL.createObjectURL=()=> 'blob:report';w.URL.revokeObjectURL=()=>{};w.HTMLAnchorElement.prototype.click=function(){download=this.download;};$('exportReport').click();assert(download.startsWith('repairlab-iphone-5-')&&download.endsWith('.html'));
+ w.open=()=>null;assert.equal(w.exportRepairReport(true),false);assert($('noteStatus').textContent.includes('заблокировано'));
+ console.log('PASS: corrupt checklist, legacy migration, model-specific autosave, context switch, diagnostic flags, failed-write drafts, retry and escaped printable report');
+ }finally{dom.window.close();}})().catch(e=>{console.error(e);process.exitCode=1});

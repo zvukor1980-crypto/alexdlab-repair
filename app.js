@@ -1,4 +1,7 @@
-let db;
+let db;let noteTimer=0,pendingNote=null;const noteDrafts=new Map(),flowDrafts=new Map();
+function repairStatus(text){const el=document.getElementById('noteStatus');if(el)el.textContent=text;}
+function readLocal(key){try{return localStorage.getItem(key);}catch{return null;}}
+function writeLocal(key,value){try{localStorage.setItem(key,value);return true;}catch{repairStatus('Не удалось записать. Скопируй заметки или скачай отчёт, чтобы сохранить работу.');return false;}}
 const $ = id => document.getElementById(id);
 const selects = {category:$('category'),brand:$('brand'),model:$('model'),fault:$('fault')};
 
@@ -13,8 +16,11 @@ async function init(){
   selects.category.addEventListener('change', onCategory);
   selects.brand.addEventListener('change', onBrand);
   selects.model.addEventListener('change', onModel);
-  $('startBtn').addEventListener('click', renderDiagnostic);
-  $('saveNotes').addEventListener('click', saveNotes);
+  $('flow').addEventListener('click',e=>{const button=e.target.closest('button[data-step-state]');if(button)window.markStep(button,button.dataset.stepState);});
+  $('startBtn').addEventListener('click',renderDiagnostic);selects.fault.addEventListener('change',resetDiagnostic);
+  $('saveNotes').addEventListener('click',saveNotes);$('notes').addEventListener('input',()=>{pendingNote={key:noteKey(),value:$('notes').value};repairStatus('Есть несохранённые изменения');clearTimeout(noteTimer);noteTimer=setTimeout(flushNotes,250);});
+  $('exportReport').addEventListener('click',()=>exportRepairReport(false));$('printReport').addEventListener('click',()=>exportRepairReport(true));
+  window.addEventListener('pagehide',flushNotes);document.addEventListener('visibilitychange',()=>{if(document.hidden)flushNotes();});
   $('analyzeBtn').addEventListener('click', analyze);
   installFirmwareCenter();
   onCategory();
@@ -38,20 +44,23 @@ function model(){
 }
 function fault(){ return model()?.faults.find(x=>x.id===selects.fault.value); }
 function onCategory(){
+  flushNotes();
   fill(selects.brand, cat()?.brands||[], cat()?.brands?.length?'Выберите производителя':'База готова к наполнению');
   fill(selects.model, [], 'Сначала производитель');
   fill(selects.fault, [], 'Сначала модель');
-  updateFirmwareCenter();
+  loadNotes();resetDiagnostic();updateFirmwareCenter();
 }
 function onBrand(){
+  flushNotes();
   if(isApple()) fill(selects.model, IPHONES, 'Выберите iPhone');
   else fill(selects.model, brand()?.models||[], 'Выберите модель');
   fill(selects.fault, [], 'Сначала модель');
-  updateFirmwareCenter();
+  loadNotes();resetDiagnostic();updateFirmwareCenter();
 }
 function onModel(){
+  flushNotes();
   fill(selects.fault, model()?.faults||[], 'Выберите неисправность');
-  renderDocs(); loadNotes(); updateFirmwareCenter();
+  renderDocs();loadNotes();resetDiagnostic();updateFirmwareCenter();
 }
 function renderDocs(){
   const m=model();
@@ -66,12 +75,28 @@ function renderDiagnostic(){
   badge.textContent=f.verification==='verified'?'проверено':'алгоритм / нужен источник для точных точек';
   $('tools').innerHTML=(f.tools||[]).map(t=>`<span class="chip">${t}</span>`).join('');
   $('flow').classList.remove('empty');
-  $('flow').innerHTML=f.steps.map((s,i)=>`<div class="step"><div class="step-top"><div class="step-num">${i+1}</div><div><h4>${s.title}</h4><p>${s.text}</p><div class="meta">${s.instrument?`<span class="tag">Прибор: ${s.instrument}</span>`:''}${s.mode?`<span class="tag">Режим: ${s.mode}</span>`:''}${s.risk?`<span class="tag">⚠ ${s.risk}</span>`:''}${s.source?`<span class="tag">Источник: ${s.source}</span>`:''}</div><div class="decision"><button onclick="markStep(this,'ok')">✓ Выполнено</button><button onclick="markStep(this,'problem')">! Есть отклонение</button></div></div></div></div>`).join('');
+  $('flow').innerHTML=f.steps.map((s,i)=>`<div class="step"><div class="step-top"><div class="step-num">${i+1}</div><div><h4>${s.title}</h4><p>${s.text}</p><div class="meta">${s.instrument?`<span class="tag">Прибор: ${s.instrument}</span>`:''}${s.mode?`<span class="tag">Режим: ${s.mode}</span>`:''}${s.risk?`<span class="tag">⚠ ${s.risk}</span>`:''}${s.source?`<span class="tag">Источник: ${s.source}</span>`:''}</div><div class="decision"><button data-step-state="ok">✓ Выполнено</button><button data-step-state="problem">! Есть отклонение</button></div></div></div></div>`).join('');
+  let marks=[];try{marks=JSON.parse(flowDrafts.get(flowKey())||readLocal(flowKey())||'[]');}catch{}if(Array.isArray(marks))$('flow').querySelectorAll('.step').forEach((step,i)=>applyStep(step,['ok','problem'].includes(marks[i])?marks[i]:'todo'));
 }
-window.markStep=(btn,state)=>{ btn.closest('.step').style.outline=state==='ok'?'1px solid #5b7727':'1px solid #806226'; };
-function noteKey(){ return `repairlab:${selects.model.value||'general'}:notes`; }
-function saveNotes(){ localStorage.setItem(noteKey(),$('notes').value); $('saveNotes').textContent='Сохранено'; setTimeout(()=>$('saveNotes').textContent='Сохранить локально',900); }
-function loadNotes(){ $('notes').value=localStorage.getItem(noteKey())||''; }
+function flowKey(){return `repairlab:flow:${selects.category.value}:${selects.brand.value}:${selects.model.value}:${selects.fault.value}`;}
+function resetDiagnostic(){if(db)renderDocs();$('diagTitle').textContent='Выберите модель и неисправность';$('flow').innerHTML='<div class="empty-state">Нажми «Начать диагностику», чтобы открыть шаги выбранного устройства.</div>';$('flow').classList.add('empty');$('sourceBadge').className='badge neutral';$('sourceBadge').textContent='нет данных';$('tools').innerHTML='';}
+function applyStep(step,state){step.dataset.state=state;step.style.outline=state==='ok'?'1px solid #5b7727':state==='problem'?'1px solid #806226':'';step.querySelectorAll('.decision button').forEach((b,i)=>b.setAttribute('aria-pressed',String(state===(i===0?'ok':'problem'))));}
+window.markStep=(btn,state)=>{const step=btn.closest('.step');applyStep(step,step.dataset.state===state?'todo':state);const key=flowKey(),value=JSON.stringify([...$('flow').querySelectorAll('.step')].map(x=>x.dataset.state||'todo'));flowDrafts.set(key,value);if(writeLocal(key,value))flowDrafts.delete(key);};
+function noteKey(){return `repairlab:notes:${selects.category.value||'general'}:${selects.brand.value||'general'}:${selects.model.value||'general'}`;}
+function flushFlow(){let ok=true;for(const[key,value]of flowDrafts){if(writeLocal(key,value))flowDrafts.delete(key);else ok=false;}return ok;}
+function flushNotes(){clearTimeout(noteTimer);if(pendingNote){noteDrafts.set(pendingNote.key,pendingNote.value);pendingNote=null;}if(!noteDrafts.size)return flushFlow();let ok=true;for(const[key,value]of noteDrafts){if(writeLocal(key,value))noteDrafts.delete(key);else ok=false;}ok=flushFlow()&&ok;if(ok)repairStatus('Заметки сохранены');return ok;}
+
+function saveNotes(){pendingNote={key:noteKey(),value:$('notes').value};return flushNotes();}
+function loadNotes(){const key=noteKey();if(noteDrafts.has(key)){$('notes').value=noteDrafts.get(key);repairStatus('Есть несохранённые заметки — память устройства недоступна');return;}let value=readLocal(key);if(value==null){value=readLocal(`repairlab:${selects.model.value||'general'}:notes`)||'';if(value)writeLocal(key,value);}$('notes').value=value;repairStatus(value?'Заметки загружены':'Заметки сохраняются автоматически');}
+function repairReport(){
+ const m=model(),f=fault();let marks=[];try{marks=JSON.parse(flowDrafts.get(flowKey())||readLocal(flowKey())||'[]');}catch{}if(!Array.isArray(marks))marks=[];
+ const rows=(f?.steps||[]).map((step,i)=>{const state=$('flow').querySelectorAll('.step')[i]?.dataset.state||marks[i]||'todo';return `<section><h3>${i+1}. ${escapeText(step.title)}</h3><b>${state==='ok'?'Выполнено':state==='problem'?'Есть отклонение':'Не отмечено'}</b><p>${escapeText(step.text)}</p>${step.source?'<p>Источник: '+escapeText(step.source)+'</p>':''}</section>`;}).join('');
+ return `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RepairLab · отчёт</title><style>body{max-width:850px;margin:32px auto;padding:0 20px;font:16px/1.5 system-ui;color:#17202d}h1,h2{color:#183c67}section{padding:12px 0;border-bottom:1px solid #ccd3dd;break-inside:avoid}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;background:#f1f4f8;padding:16px}footer{margin-top:24px;color:#526074}@media print{body{margin:0;padding:0}h1{font-size:24px}}</style><h1>Отчёт диагностики RepairLab</h1><p>${escapeText(new Date().toLocaleString('ru-RU'))}</p><h2>${escapeText(m?.name||'Устройство не выбрано')}</h2><p>Неисправность: ${escapeText(f?.name||'не выбрана')}</p><p>Профиль: ${f?.verification==='verified'?'проверенный':f?'алгоритм, точные точки требуют подтверждения':'не выбран'}. Отметки внесены мастером.</p>${rows}<h2>Заметки мастера</h2><pre>${escapeText($('notes').value)}</pre><footer>Создано локально в RepairLab.</footer></html>`;
+}
+function exportRepairReport(print){flushNotes();const html=repairReport();if(print){const win=window.open('','_blank');if(!win){repairStatus('Окно печати заблокировано. Скачай отчёт или разреши открытие окна.');return false;}win.document.write(html);win.document.close();win.focus();win.print();return true;}
+ const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='repairlab-'+(model()?.id||'notes')+'-'+new Date().toISOString().slice(0,10)+'.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);repairStatus('Отчёт подготовлен для скачивания');return true;
+}
+
 function analyze(){
   const val=parseFloat(String($('measureValue').value).replace(',','.'));
   if(Number.isNaN(val)){ $('measureResult').textContent='Введите числовое значение.'; return; }
@@ -211,9 +236,9 @@ function initAudit(){
   const box=$('auditChecks'); if(!box) return;
   box.innerHTML=AUDIT_ITEMS.map(([id,title,hint])=>`<label class="audit-check"><input type="checkbox" value="${id}"><span>${title}<small>${hint}</small></span></label>`).join('');
   $('auditRun').addEventListener('click',runAudit);
-  $('auditReset').addEventListener('click',()=>{box.querySelectorAll('input').forEach(x=>x.checked=false);$('auditModel').value='';$('auditBattery').value='';$('auditSerial').value='';localStorage.removeItem('repairlab:audit');renderAuditEmpty();});
-  const saved=JSON.parse(localStorage.getItem('repairlab:audit')||'null');
-  if(saved){$('auditModel').value=saved.model||'';$('auditBattery').value=saved.battery||'';$('auditSerial').value=saved.serial||'';box.querySelectorAll('input').forEach(x=>x.checked=(saved.checked||[]).includes(x.value));runAudit();}
+  $('auditReset').addEventListener('click',()=>{box.querySelectorAll('input').forEach(x=>x.checked=false);$('auditModel').value='';$('auditBattery').value='';$('auditSerial').value='';try{localStorage.removeItem('repairlab:audit');}catch{repairStatus('Не удалось удалить сохранённый чек-лист');}renderAuditEmpty();});
+  let saved=null;try{saved=JSON.parse(readLocal('repairlab:audit')||'null');}catch{}
+  if(saved){$('auditModel').value=saved.model||'';$('auditBattery').value=saved.battery||'';$('auditSerial').value=saved.serial||'';box.querySelectorAll('input').forEach(x=>x.checked=(Array.isArray(saved.checked)?saved.checked:[]).includes(x.value));runAudit();}
 }
 function runAudit(){
   const checked=[...$('auditChecks').querySelectorAll('input:checked')].map(x=>x.value);
@@ -228,7 +253,7 @@ function runAudit(){
   const model=$('auditModel').value.trim()||'iPhone';
   $('auditResult').className=`trust-card ${state}`;
   $('auditResult').innerHTML=`<div class="trust-ring" style="--score:${score}"><strong>${score}</strong><span>/ 100</span></div><div><p class="eyebrow">TRUST INDEX · ${escapeText(model)}</p><h3>${title}</h3><p>${checked.length} из ${AUDIT_ITEMS.length} проверок подтверждено.${battery?` Аккумулятор: ${battery}%.`:''}</p>${risks.length?`<div class="risk-list">${risks.map(x=>`<div class="risk-item">${escapeText(x)}</div>`).join('')}</div>`:'<p>Критичных пробелов в чек-листе не осталось.</p>'}</div>`;
-  localStorage.setItem('repairlab:audit',JSON.stringify({model:$('auditModel').value,battery:$('auditBattery').value,serial:$('auditSerial').value,checked}));
+  writeLocal('repairlab:audit',JSON.stringify({model:$('auditModel').value,battery:$('auditBattery').value,serial:$('auditSerial').value,checked}));
 }
 function renderAuditEmpty(){$('auditResult').className='trust-card';$('auditResult').innerHTML='<div class="trust-ring" style="--score:0"><strong>—</strong><span>/ 100</span></div><div><p class="eyebrow">TRUST INDEX</p><h3>Пройдите чек-лист</h3><p>RepairLab соберёт риски и подскажет, что перепроверить до оплаты.</p></div>';}
 function escapeText(value){const el=document.createElement('span');el.textContent=value;return el.innerHTML;}
